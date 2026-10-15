@@ -1,0 +1,62 @@
+openapi: 3.1.1
+info:
+  title: 'TEMPORARY stand-in - Haqdarshak eligibility result (NOT an ION schema)'
+  version: 0.0.2
+  description: 'Stand-in for the seller answer in on_select: the eligible schemes with reasons, documents and next step. Attaches to Contract.contractAttributes.'
+components:
+  schemas:
+    I18nText:
+      type: object
+      required: [en, id]
+      properties:
+        en: { type: string }
+        id: { type: string }
+    HqEligibilityResult:
+      type: object
+      x-beckn-container: contractAttributes
+      x-jsonld:
+        '@context': 'http://reverse-proxy:9000/schema/HqEligibilityResult/v0/context.jsonld'
+        '@type': hq:HqEligibilityResult
+      required:
+        - eligibility
+      properties:
+        eligibility:
+          type: object
+          x-jsonld-id: 'hq:eligibility'
+          required: [eligibleCount, schemes]
+          properties:
+            eligibleCount: { type: integer, minimum: 0 }
+            language: { type: string, enum: [en, id] }
+            stillUnknownFields: { type: array, items: { type: string } }
+            schemes:
+              type: array
+              items:
+                type: object
+                required: [id, name, benefit, why, documents, fulfillment]
+                properties:
+                  id: { type: string }
+                  displayName: { type: string }
+                  name: { $ref: '#/components/schemas/I18nText' }
+                  benefit: { $ref: '#/components/schemas/I18nText' }
+                  why:
+                    type: array
+                    items: { $ref: '#/components/schemas/I18nText' }
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      required: [name, mandatory]
+                      properties:
+                        name: { $ref: '#/components/schemas/I18nText' }
+                        mandatory: { type: boolean }
+                  fulfillment:
+                    type: object
+                    required: [type]
+                    properties:
+                      type:
+                        {
+                          type: string,
+                          enum: [EXTERNAL_REDIRECT, ASSISTED_APPLICATION, API_SUBMISSION],
+                        }
+                      url: { type: string }
+                      instructions: { $ref: '#/components/schemas/I18nText' }

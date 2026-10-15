@@ -1,0 +1,32 @@
+openapi: 3.1.1
+info:
+  title: 'TEMPORARY stand-in - Haqdarshak MSME profile (NOT an ION schema)'
+  version: 0.0.2
+  description: 'Stand-in for the MSME profile a buyer sends in select. Replace with the ION government-benefits schema once confirmed (see docs/PLAN.md, open questions 1 and 2). Attaches to Contract.contractAttributes.'
+components:
+  schemas:
+    HqMsmeProfile:
+      type: object
+      x-beckn-container: contractAttributes
+      x-jsonld:
+        '@context': 'http://reverse-proxy:9000/schema/HqMsmeProfile/v0/context.jsonld'
+        '@type': hq:HqMsmeProfile
+      required:
+        - msmeProfile
+      properties:
+        language:
+          type: string
+          enum: [en, id]
+          x-jsonld-id: 'hq:language'
+        msmeProfile:
+          type: object
+          additionalProperties: false
+          x-jsonld-id: 'hq:msmeProfile'
+          properties:
+            businessType: { type: string, enum: [individual, CV, PT, cooperative] }
+            sector: { type: string }
+            annualTurnoverIdr: { type: integer, minimum: 0 }
+            province: { type: string }
+            workerCount: { type: integer, minimum: 0 }
+            hasNIB: { type: boolean }
+            exportsOrPlansToExport: { type: boolean }

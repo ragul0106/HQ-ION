@@ -1,0 +1,9 @@
+{
+  "@context": {
+    "hq": "http://reverse-proxy:9000/schema/HqEligibilityResult#",
+    "@context": { "@id": "hq:@context" },
+    "@type": { "@id": "hq:@type" },
+    "HqEligibilityResult": "hq:HqEligibilityResult",
+    "eligibility": { "@id": "hq:eligibility" }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "@context": {
+    "hq": "http://reverse-proxy:9000/schema/HqMsmeProfile#",
+    "@context": { "@id": "hq:@context" },
+    "@type": { "@id": "hq:@type" },
+    "HqMsmeProfile": "hq:HqMsmeProfile",
+    "language": { "@id": "hq:language" },
+    "msmeProfile": { "@id": "hq:msmeProfile" }
+  }
+}

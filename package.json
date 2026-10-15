@@ -1,0 +1,43 @@
+{
+  "name": "hq-ion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Haqdarshak on the Indonesia Open Network (ION): seller (BPP) application",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/main.ts",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "catalog:publish": "tsx --env-file-if-exists=.env src/cli/publish-catalog.ts",
+    "schemes:validate": "tsx --env-file-if-exists=.env src/cli/validate-schemes.ts",
+    "roundtrip": "tsx --env-file-if-exists=.env scripts/roundtrip.ts",
+    "onix:apply": "tsx scripts/onix-config.ts",
+    "ask": "tsx --env-file-if-exists=.env scripts/ask.ts",
+    "listen": "tsx scripts/listen.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.12.7",
+    "pino": "^10.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.4"
+  }
+}

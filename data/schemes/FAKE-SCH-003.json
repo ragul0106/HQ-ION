@@ -1,0 +1,67 @@
+{
+  "id": "FAKE-SCH-003",
+  "name": {
+    "en": "Fake Rural Digitalisation Grant",
+    "id": "Hibah Digitalisasi Desa (CONTOH)"
+  },
+  "benefit": {
+    "en": "Grant for online store setup",
+    "id": "Hibah untuk pembuatan toko daring"
+  },
+  "eligibility": {
+    "rules": [
+      {
+        "ruleId": "R1",
+        "field": "province",
+        "operator": "IN",
+        "value": [
+          "Jawa Tengah",
+          "Jawa Timur",
+          "Nusa Tenggara Timur"
+        ],
+        "label": {
+          "en": "Located in a pilot province",
+          "id": "Berlokasi di provinsi percontohan"
+        }
+      },
+      {
+        "ruleId": "R2",
+        "field": "businessType",
+        "operator": "IN",
+        "value": [
+          "individual",
+          "CV"
+        ],
+        "label": {
+          "en": "Individual business or CV",
+          "id": "Usaha perorangan atau CV"
+        }
+      }
+    ]
+  },
+  "documents": [
+    {
+      "name": {
+        "en": "ID card (KTP)",
+        "id": "KTP"
+      },
+      "mandatory": true
+    },
+    {
+      "name": {
+        "en": "Photo of the business",
+        "id": "Foto usaha"
+      },
+      "mandatory": false
+    }
+  ],
+  "fulfillment": {
+    "type": "EXTERNAL_REDIRECT",
+    "url": "https://example.invalid/fake-rural-grant",
+    "instructions": {
+      "en": "Apply through your village office.",
+      "id": "Ajukan lewat kantor desa."
+    }
+  },
+  "placeholder": true
+}

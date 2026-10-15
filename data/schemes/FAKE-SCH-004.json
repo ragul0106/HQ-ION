@@ -1,0 +1,71 @@
+{
+  "id": "FAKE-SCH-004",
+  "name": {
+    "en": "Fake Export Readiness Support",
+    "id": "Dukungan Kesiapan Ekspor (CONTOH)"
+  },
+  "benefit": {
+    "en": "Subsidised export certification",
+    "id": "Subsidi sertifikasi ekspor"
+  },
+  "eligibility": {
+    "rules": [
+      {
+        "ruleId": "R1",
+        "field": "annualTurnoverIdr",
+        "operator": ">=",
+        "value": 500000000,
+        "unit": "IDR",
+        "label": {
+          "en": "Annual turnover at least IDR 500 million",
+          "id": "Omzet tahunan minimal Rp500 juta"
+        }
+      },
+      {
+        "ruleId": "R2",
+        "field": "hasNIB",
+        "operator": "=",
+        "value": true,
+        "label": {
+          "en": "Has a business registration number (NIB)",
+          "id": "Memiliki Nomor Induk Berusaha (NIB)"
+        }
+      },
+      {
+        "ruleId": "R3",
+        "field": "exportsOrPlansToExport",
+        "operator": "=",
+        "value": true,
+        "label": {
+          "en": "Exports or plans to export",
+          "id": "Mengekspor atau berencana mengekspor"
+        }
+      }
+    ]
+  },
+  "documents": [
+    {
+      "name": {
+        "en": "NIB",
+        "id": "NIB"
+      },
+      "mandatory": true
+    },
+    {
+      "name": {
+        "en": "Product list",
+        "id": "Daftar produk"
+      },
+      "mandatory": true
+    }
+  ],
+  "fulfillment": {
+    "type": "EXTERNAL_REDIRECT",
+    "url": "https://example.invalid/fake-export",
+    "instructions": {
+      "en": "Apply on the official portal.",
+      "id": "Ajukan melalui portal resmi."
+    }
+  },
+  "placeholder": true
+}

@@ -1,0 +1,22 @@
+# dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# secrets and local config: NEVER commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+private*.key
+settings.env
+
+# ONIX adapter runtime data (signed catalogs etc.), generated
+deploy/data/
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.log

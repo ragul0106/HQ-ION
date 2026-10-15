@@ -1,0 +1,61 @@
+{
+  "id": "FAKE-SCH-001",
+  "name": {
+    "en": "Fake Micro Loan Scheme",
+    "id": "Skema Pinjaman Mikro (CONTOH)"
+  },
+  "benefit": {
+    "en": "Low-interest loan up to IDR 50 million",
+    "id": "Pinjaman bunga rendah hingga Rp50 juta"
+  },
+  "eligibility": {
+    "rules": [
+      {
+        "ruleId": "R1",
+        "field": "annualTurnoverIdr",
+        "operator": "<=",
+        "value": 2000000000,
+        "unit": "IDR",
+        "label": {
+          "en": "Annual turnover up to IDR 2 billion",
+          "id": "Omzet tahunan hingga Rp2 miliar"
+        }
+      },
+      {
+        "ruleId": "R2",
+        "field": "hasNIB",
+        "operator": "=",
+        "value": true,
+        "label": {
+          "en": "Has a business registration number (NIB)",
+          "id": "Memiliki Nomor Induk Berusaha (NIB)"
+        }
+      }
+    ]
+  },
+  "documents": [
+    {
+      "name": {
+        "en": "NIB",
+        "id": "NIB"
+      },
+      "mandatory": true
+    },
+    {
+      "name": {
+        "en": "Business bank statement",
+        "id": "Rekening koran usaha"
+      },
+      "mandatory": true
+    }
+  ],
+  "fulfillment": {
+    "type": "EXTERNAL_REDIRECT",
+    "url": "https://example.invalid/fake-micro-loan",
+    "instructions": {
+      "en": "Apply on the official portal.",
+      "id": "Ajukan melalui portal resmi."
+    }
+  },
+  "placeholder": true
+}

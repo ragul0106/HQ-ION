@@ -1,0 +1,907 @@
+{
+  "info": {
+    "name": "HQ-ION seller (ION testnet)",
+    "description": "Requests for the Haqdarshak seller on the local ION testnet.\n\nStart the testnet and the seller app first (docs/LOCAL_TESTNET.md), and run `npm run listen` in a terminal. Select the environment `HQ-ION local testnet`.\n\nA Beckn request returns only an ACK. The answer (on_select, with the schemes) is a separate callback that Postman cannot receive, so each select is followed by an 'ANSWER' request that fetches it from the listener.\n\nMessage ids come from {{$guid}}, so every send is new.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 Seller app (direct, port 3102)",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Is the HQ-ION seller app running?",
+            "url": {
+              "raw": "{{seller_url}}/health",
+              "host": ["{{seller_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('seller app is up', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('ok');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "select: food stall (3 schemes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "ACK now. The answer (on_select, 3 schemes) goes to the adapter and then to the buyer listener: run `npm run listen` to see it.",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"businessType\": \"individual\",\n          \"sector\": \"food\",\n          \"province\": \"Jawa Tengah\",\n          \"workerCount\": 3,\n          \"annualTurnoverIdr\": 300000000,\n          \"hasNIB\": true,\n          \"exportsOrPlansToExport\": false\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});",
+                  "",
+                  "// remember this select's id, so the next request can fetch its answer from the listener",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('last_message_id', pm.response.json().message.messageId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "\u2192 the ANSWER to the select above (food stall)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// the answer is sent just after the ACK; give it a moment to arrive",
+                  "setTimeout(function () {}, 1500);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('the on_select answer arrived, with 3 scheme(s)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.context.action).to.eql('on_select');",
+                  "  const e = body.message.contract.contractAttributes.eligibility;",
+                  "  pm.expect(e.eligibleCount).to.eql(3);",
+                  "  console.log('schemes:', e.schemes.map(s => s.id).join(', ') || '(none)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "The seller's answer (the on_select message). A Beckn request only returns an ACK; the answer is a separate callback that Postman cannot receive, so it is read from the listener. Keep `npm run listen` running. The listener finds it by the messageId saved from the select above.",
+            "url": {
+              "raw": "{{listener_url}}/callbacks/{{last_message_id}}",
+              "host": ["{{listener_url}}"],
+              "path": ["callbacks", "{{last_message_id}}"]
+            }
+          }
+        },
+        {
+          "name": "select: exporter (2 schemes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Answer: FAKE-SCH-001 and FAKE-SCH-004.",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"businessType\": \"CV\",\n          \"sector\": \"craft\",\n          \"province\": \"Bali\",\n          \"workerCount\": 25,\n          \"annualTurnoverIdr\": 1500000000,\n          \"hasNIB\": true,\n          \"exportsOrPlansToExport\": true\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});",
+                  "",
+                  "// remember this select's id, so the next request can fetch its answer from the listener",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('last_message_id', pm.response.json().message.messageId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "\u2192 the ANSWER to the select above (exporter)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// the answer is sent just after the ACK; give it a moment to arrive",
+                  "setTimeout(function () {}, 1500);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('the on_select answer arrived, with 2 scheme(s)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.context.action).to.eql('on_select');",
+                  "  const e = body.message.contract.contractAttributes.eligibility;",
+                  "  pm.expect(e.eligibleCount).to.eql(2);",
+                  "  console.log('schemes:', e.schemes.map(s => s.id).join(', ') || '(none)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "The seller's answer (the on_select message). A Beckn request only returns an ACK; the answer is a separate callback that Postman cannot receive, so it is read from the listener. Keep `npm run listen` running. The listener finds it by the messageId saved from the select above.",
+            "url": {
+              "raw": "{{listener_url}}/callbacks/{{last_message_id}}",
+              "host": ["{{listener_url}}"],
+              "path": ["callbacks", "{{last_message_id}}"]
+            }
+          }
+        },
+        {
+          "name": "select: only one answer (0 schemes + what to ask next)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"hasNIB\": true\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});",
+                  "",
+                  "// remember this select's id, so the next request can fetch its answer from the listener",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('last_message_id', pm.response.json().message.messageId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "\u2192 the ANSWER to the select above (one answer only)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// the answer is sent just after the ACK; give it a moment to arrive",
+                  "setTimeout(function () {}, 1500);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('the on_select answer arrived, with 0 scheme(s)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.context.action).to.eql('on_select');",
+                  "  const e = body.message.contract.contractAttributes.eligibility;",
+                  "  pm.expect(e.eligibleCount).to.eql(0);",
+                  "  console.log('schemes:', e.schemes.map(s => s.id).join(', ') || '(none)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "The seller's answer (the on_select message). A Beckn request only returns an ACK; the answer is a separate callback that Postman cannot receive, so it is read from the listener. Keep `npm run listen` running. The listener finds it by the messageId saved from the select above.",
+            "url": {
+              "raw": "{{listener_url}}/callbacks/{{last_message_id}}",
+              "host": ["{{listener_url}}"],
+              "path": ["callbacks", "{{last_message_id}}"]
+            }
+          }
+        },
+        {
+          "name": "select: Bahasa Indonesia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"id\",\n        \"msmeProfile\": {\n          \"businessType\": \"individual\",\n          \"sector\": \"food\",\n          \"province\": \"Jawa Tengah\",\n          \"workerCount\": 3,\n          \"annualTurnoverIdr\": 300000000,\n          \"hasNIB\": true,\n          \"exportsOrPlansToExport\": false\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});",
+                  "",
+                  "// remember this select's id, so the next request can fetch its answer from the listener",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('last_message_id', pm.response.json().message.messageId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "\u2192 the ANSWER to the select above (in Bahasa)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// the answer is sent just after the ACK; give it a moment to arrive",
+                  "setTimeout(function () {}, 1500);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('the on_select answer arrived, with 3 scheme(s)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.context.action).to.eql('on_select');",
+                  "  const e = body.message.contract.contractAttributes.eligibility;",
+                  "  pm.expect(e.eligibleCount).to.eql(3);",
+                  "  console.log('schemes:', e.schemes.map(s => s.id).join(', ') || '(none)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "The seller's answer (the on_select message). A Beckn request only returns an ACK; the answer is a separate callback that Postman cannot receive, so it is read from the listener. Keep `npm run listen` running. The listener finds it by the messageId saved from the select above.",
+            "url": {
+              "raw": "{{listener_url}}/callbacks/{{last_message_id}}",
+              "host": ["{{listener_url}}"],
+              "path": ["callbacks", "{{last_message_id}}"]
+            }
+          }
+        },
+        {
+          "name": "select: negative workers (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"workerCount\": -3\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400 and NACK BAD_REQUEST', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('BAD_REQUEST');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "select: phone number (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Personal data we never asked for is refused, and the value is never echoed back.",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\"\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"sector\": \"food\",\n          \"phone\": \"+628111222333\"\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400 and NACK BAD_REQUEST', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('BAD_REQUEST');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "init: not built in Phase 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/init",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "init"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"init\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400 and NACK UNSUPPORTED_IN_PHASE_1', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('UNSUPPORTED_IN_PHASE_1');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "select: URL and context.action disagree",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"init\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400 and NACK ACTION_MISMATCH', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('ACTION_MISMATCH');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "not a Beckn message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/select",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hello\": \"world\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400 and NACK BAD_REQUEST', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('BAD_REQUEST');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "unknown action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/teleport",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "teleport"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"teleport\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404 and NACK UNKNOWN_ACTION', () => {",
+                  "  pm.response.to.have.status(404);",
+                  "  const m = pm.response.json().message;",
+                  "  pm.expect(m.status).to.eql('NACK');",
+                  "  pm.expect(m.error.code).to.eql('UNKNOWN_ACTION');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "on_publish (ACK only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{seller_url}}/api/webhook/on_publish",
+              "host": ["{{seller_url}}"],
+              "path": ["api", "webhook", "on_publish"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"on_publish\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\"\n  },\n  \"message\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 Through ION (adapters)",
+      "item": [
+        {
+          "name": "select via the BUYER ADAPTER (exporter)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "The real ION path: buyer adapter -> seller adapter -> seller app. Only the ACK comes back here; run `npm run listen` to see the on_select with 2 schemes.",
+            "url": {
+              "raw": "{{bap_caller_url}}/select",
+              "host": ["{{bap_caller_url}}"],
+              "path": ["select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\",\n    \"schemaContext\": []\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"status\": {\n            \"code\": \"DRAFT\"\n          },\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\",\n              \"descriptor\": {\n                \"name\": \"Scheme eligibility check\"\n              },\n              \"quantity\": {\n                \"unitQuantity\": 1,\n                \"unitCode\": \"UNIT\"\n              }\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"businessType\": \"CV\",\n          \"sector\": \"craft\",\n          \"province\": \"Bali\",\n          \"workerCount\": 25,\n          \"annualTurnoverIdr\": 1500000000,\n          \"hasNIB\": true,\n          \"exportsOrPlansToExport\": true\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 and ACK', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().message.status).to.eql('ACK');",
+                  "});",
+                  "",
+                  "// remember this select's id, so the next request can fetch its answer from the listener",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('last_message_id', pm.response.json().message.messageId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "\u2192 the ANSWER to the select above (through ION)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// the answer is sent just after the ACK; give it a moment to arrive",
+                  "setTimeout(function () {}, 1500);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('the on_select answer arrived, with 2 scheme(s)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.context.action).to.eql('on_select');",
+                  "  const e = body.message.contract.contractAttributes.eligibility;",
+                  "  pm.expect(e.eligibleCount).to.eql(2);",
+                  "  console.log('schemes:', e.schemes.map(s => s.id).join(', ') || '(none)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "The seller's answer (the on_select message). A Beckn request only returns an ACK; the answer is a separate callback that Postman cannot receive, so it is read from the listener. Keep `npm run listen` running. The listener finds it by the messageId saved from the select above.",
+            "url": {
+              "raw": "{{listener_url}}/callbacks/{{last_message_id}}",
+              "host": ["{{listener_url}}"],
+              "path": ["callbacks", "{{last_message_id}}"]
+            }
+          }
+        },
+        {
+          "name": "select via the buyer adapter with a phone number (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "url": {
+              "raw": "{{bap_caller_url}}/select",
+              "host": ["{{bap_caller_url}}"],
+              "path": ["select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"networkId\": \"{{network_id}}\",\n    \"bapId\": \"{{bap_id}}\",\n    \"bapUri\": \"{{bap_uri}}\",\n    \"bppId\": \"{{bpp_id}}\",\n    \"bppUri\": \"{{bpp_uri}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"messageId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\",\n    \"ttl\": \"PT30S\",\n    \"schemaContext\": []\n  },\n  \"message\": {\n    \"contract\": {\n      \"id\": \"check-1\",\n      \"participants\": [\n        {\n          \"id\": \"buyer-1\",\n          \"descriptor\": {\n            \"code\": \"buyer\"\n          }\n        }\n      ],\n      \"commitments\": [\n        {\n          \"id\": \"commitment-1\",\n          \"status\": {\n            \"code\": \"DRAFT\"\n          },\n          \"resources\": [\n            {\n              \"id\": \"HQ-ELIGIBILITY-CHECK\",\n              \"descriptor\": {\n                \"name\": \"Scheme eligibility check\"\n              },\n              \"quantity\": {\n                \"unitQuantity\": 1,\n                \"unitCode\": \"UNIT\"\n              }\n            }\n          ],\n          \"offer\": {\n            \"id\": \"offer-eligibility\",\n            \"resourceIds\": [\n              \"HQ-ELIGIBILITY-CHECK\"\n            ]\n          }\n        }\n      ],\n      \"contractAttributes\": {\n        \"@context\": \"{{schema_base_url}}/HqMsmeProfile/v0/context.jsonld\",\n        \"@type\": \"HqMsmeProfile\",\n        \"language\": \"en\",\n        \"msmeProfile\": {\n          \"sector\": \"food\",\n          \"phone\": \"+628100000000\"\n        }\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refused by the adapter schema check', () => {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json().message.error.code).to.eql('SCH_FIELD_NOT_ALLOWED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "seller adapter called UNSIGNED (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Only signed messages get in. This is what protects the network.",
+            "url": {
+              "raw": "{{bpp_adapter_url}}/bpp/receiver/select",
+              "host": ["{{bpp_adapter_url}}"],
+              "path": ["bpp", "receiver", "select"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"context\": {\n    \"action\": \"select\",\n    \"version\": \"2.0.0\",\n    \"messageId\": \"{{$guid}}\",\n    \"transactionId\": \"{{$guid}}\",\n    \"timestamp\": \"{{$isoTimestamp}}\"\n  },\n  \"message\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('unsigned messages are refused', () => {",
+                  "  pm.response.to.have.status(401);",
+                  "  pm.expect(pm.response.json().message.error.code).to.eql('AUT_SIGNATURE_MISSING');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 Catalog and schemas (files)",
+      "item": [
+        {
+          "name": "Catalog index (what a crawler fetches)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Written by the ONIX adapter after `npm run catalog:publish`. Publish first if this is a 404.",
+            "url": {
+              "raw": "{{proxy_url}}/beckn/index/becknCatalogs.index.json",
+              "host": ["{{proxy_url}}"],
+              "path": ["beckn", "index", "becknCatalogs.index.json"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('index lists our catalog', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  const idx = pm.response.json();",
+                  "  pm.expect(idx.catalogs[0].catalogId).to.include('HQ-MSME-SCHEMES');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stand-in schema (downloaded by the adapters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "TEMPORARY stand-in schema; replaced when ION confirms the government-benefits schema.",
+            "url": {
+              "raw": "{{proxy_url}}/schema/HqMsmeProfile/v0/attributes.yaml",
+              "host": ["{{proxy_url}}"],
+              "path": ["schema", "HqMsmeProfile", "v0", "attributes.yaml"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('schema is served', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

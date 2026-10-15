@@ -1,0 +1,13 @@
+{
+  "@context": {
+    "hq": "http://reverse-proxy:9000/schema/HqScheme#",
+    "@context": { "@id": "hq:@context" },
+    "@type": { "@id": "hq:@type" },
+    "HqScheme": "hq:HqScheme",
+    "name": { "@id": "hq:name" },
+    "benefit": { "@id": "hq:benefit" },
+    "eligibilityCriteria": { "@id": "hq:eligibilityCriteria" },
+    "documents": { "@id": "hq:documents" },
+    "fulfillment": { "@id": "hq:fulfillment" }
+  }
+}

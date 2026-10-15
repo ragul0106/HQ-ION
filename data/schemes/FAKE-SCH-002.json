@@ -1,0 +1,66 @@
+{
+  "id": "FAKE-SCH-002",
+  "name": {
+    "en": "Fake Food Business Training",
+    "id": "Pelatihan Usaha Makanan (CONTOH)"
+  },
+  "benefit": {
+    "en": "Free food-safety and packaging training",
+    "id": "Pelatihan keamanan pangan dan kemasan gratis"
+  },
+  "eligibility": {
+    "rules": [
+      {
+        "ruleId": "R1",
+        "field": "sector",
+        "operator": "IN",
+        "value": [
+          "food",
+          "beverage"
+        ],
+        "label": {
+          "en": "Business is in food or beverage",
+          "id": "Usaha di bidang makanan atau minuman"
+        }
+      },
+      {
+        "ruleId": "R2",
+        "field": "workerCount",
+        "operator": ">=",
+        "value": 1,
+        "label": {
+          "en": "At least 1 worker",
+          "id": "Minimal 1 pekerja"
+        }
+      },
+      {
+        "ruleId": "R3",
+        "field": "workerCount",
+        "operator": "<=",
+        "value": 19,
+        "label": {
+          "en": "At most 19 workers",
+          "id": "Maksimal 19 pekerja"
+        }
+      }
+    ]
+  },
+  "documents": [
+    {
+      "name": {
+        "en": "ID card (KTP)",
+        "id": "KTP"
+      },
+      "mandatory": true
+    }
+  ],
+  "fulfillment": {
+    "type": "EXTERNAL_REDIRECT",
+    "url": "https://example.invalid/fake-food-training",
+    "instructions": {
+      "en": "Register on the training site.",
+      "id": "Daftar di situs pelatihan."
+    }
+  },
+  "placeholder": true
+}

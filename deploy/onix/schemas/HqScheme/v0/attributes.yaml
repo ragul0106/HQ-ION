@@ -1,0 +1,44 @@
+openapi: 3.1.1
+info:
+  title: 'TEMPORARY stand-in - Haqdarshak scheme (NOT an ION schema)'
+  version: 0.0.2
+  description: 'Stand-in for a government scheme as a catalog item. Replace with the ION government-benefits schema once confirmed. Attaches to Resource.resourceAttributes.'
+components:
+  schemas:
+    I18nText:
+      type: object
+      required: [en, id]
+      properties:
+        en: { type: string }
+        id: { type: string }
+    HqScheme:
+      type: object
+      x-beckn-container: resourceAttributes
+      x-jsonld:
+        '@context': 'http://reverse-proxy:9000/schema/HqScheme/v0/context.jsonld'
+        '@type': hq:HqScheme
+      required: [name, benefit, eligibilityCriteria, documents, fulfillment]
+      properties:
+        name:
+          $ref: '#/components/schemas/I18nText'
+        benefit:
+          $ref: '#/components/schemas/I18nText'
+        eligibilityCriteria:
+          type: array
+          description: 'Human-readable public criteria. The matching logic stays inside the provider.'
+          items: { $ref: '#/components/schemas/I18nText' }
+        documents:
+          type: array
+          items:
+            type: object
+            required: [name, mandatory]
+            properties:
+              name: { $ref: '#/components/schemas/I18nText' }
+              mandatory: { type: boolean }
+        fulfillment:
+          type: object
+          required: [type]
+          properties:
+            type: { type: string, enum: [EXTERNAL_REDIRECT, ASSISTED_APPLICATION, API_SUBMISSION] }
+            url: { type: string }
+            instructions: { $ref: '#/components/schemas/I18nText' }
