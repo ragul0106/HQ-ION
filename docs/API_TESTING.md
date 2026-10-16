@@ -3,7 +3,40 @@
 Every command below was run against the local ION testnet and gave the output described. You need the testnet
 running (see [LOCAL_TESTNET.md](LOCAL_TESTNET.md)) and the seller app running (`npm run build && npm start`).
 
+## The one-call way: see the schemes in the response
+
+A Beckn request returns only an **ACK**. The schemes arrive later in a separate message (`on_select`), so a call to
+`{{bap_caller_url}}/select` never shows them, and it never returns the whole catalog either. For demos there are two
+endpoints on the listener (`npm run listen`, port 3101) that give you the schemes in the response itself:
+
+| I want                              | Call                                                                        | Returns                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| The schemes this MSME qualifies for | `POST http://localhost:3101/check` with `{"language":"en","profile":{...}}` | `eligibleCount`, and each scheme with why, documents and next step |
+| Every scheme we publish             | `GET http://localhost:3101/catalog` (`?lang=id` for Bahasa)                 | All 4 schemes in the published catalog                             |
+
+```bash
+npm run listen          # keep this running in its own terminal
+
+curl -s -X POST localhost:3101/check -H 'content-type: application/json' -d '{
+  "language": "en",
+  "profile": {"businessType":"CV","sector":"craft","province":"Bali","workerCount":25,
+              "annualTurnoverIdr":1500000000,"hasNIB":true,"exportsOrPlansToExport":true}}'
+# {"eligibleCount": 2, "schemes": [ {"id":"FAKE-SCH-001", ...}, {"id":"FAKE-SCH-004", ...} ], ...}
+
+curl -s localhost:3101/catalog
+# {"catalogId":"...HQ-MSME-SCHEMES","count":4,"schemes":[ ... ]}
+```
+
+`/check` really goes through ION: it sends a `select` through the buyer adapter, waits for the seller's `on_select`,
+and returns it. This is what a buyer app's backend does for its front end. Bad input is refused with a 400 that names
+the field (a phone number is refused, and the value is never echoed back).
+
+`/catalog` is **our published catalog** (what ION's Discovery Service will index once our identity is registered),
+not the Discovery Service itself. In Postman, use folder **4 One call** in the collection.
+
 ## 0. Before you start
+
+Not working? Run `npm run doctor`: it checks the seller app, both adapters, the schema proxy and the listener, and says what to start. A `502 Bad Gateway` from `:8081` almost always means the seller app (`:3102`) is not running.
 
 **Terminal 1: the listener.** A Beckn request returns only an ACK. The answer (the schemes) is a **separate message**
 (`on_select`) sent later to the buyer's callback address, so curl and Postman never see it in the response. The

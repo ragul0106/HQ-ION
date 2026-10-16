@@ -9,6 +9,8 @@ export interface CallbackStore {
   get(messageId: string): StoredCallback | undefined;
   latest(): { messageId: string; callback: StoredCallback } | undefined;
   list(): { messageId: string; receivedAt: string }[];
+  /** Resolves with the callback once it arrives, or undefined after `ms`. */
+  waitFor(messageId: string, ms: number, pollMs?: number): Promise<StoredCallback | undefined>;
 }
 
 export function createCallbackStore(
@@ -36,5 +38,14 @@ export function createCallbackStore(
       [...items.entries()]
         .map(([messageId, c]) => ({ messageId, receivedAt: c.receivedAt }))
         .reverse(),
+    async waitFor(messageId, ms, pollMs = 50) {
+      const deadline = Date.now() + ms;
+      for (;;) {
+        const found = items.get(messageId);
+        if (found) return found;
+        if (Date.now() >= deadline) return undefined;
+        await new Promise((resolve) => setTimeout(resolve, pollMs));
+      }
+    },
   };
 }

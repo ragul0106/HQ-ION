@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
-import { buildServer } from '../src/server.js';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createApp } from '../src/app.js';
 import { UNSUPPORTED_IN_PHASE_1 } from '../src/protocol/actions.js';
 import { envelope, makeDeps } from './helpers.js';
 
-let app: FastifyInstance | undefined;
+let app: NestFastifyApplication | undefined;
 
 async function setup() {
   const made = await makeDeps();
-  app = buildServer(made.deps);
+  app = await createApp(made.deps);
   return { app, cap: made.cap, sent: made.sent, flush: made.flush };
 }
 
@@ -17,13 +17,16 @@ afterEach(async () => {
   app = undefined;
 });
 
-const post = (a: FastifyInstance, action: string, payload: unknown) =>
-  a.inject({ method: 'POST', url: `/api/webhook/${action}`, payload: payload as object });
+const post = (a: NestFastifyApplication, action: string, payload: unknown) =>
+  a
+    .getHttpAdapter()
+    .getInstance()
+    .inject({ method: 'POST', url: `/api/webhook/${action}`, payload: payload as object });
 
 describe('GET /health', () => {
   it('reports the environment and region', async () => {
     const { app } = await setup();
-    const res = await app.inject({ method: 'GET', url: '/health' });
+    const res = await app.getHttpAdapter().getInstance().inject({ method: 'GET', url: '/health' });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({ status: 'ok', ionEnv: 'sandbox', region: 'test-region' });
   });

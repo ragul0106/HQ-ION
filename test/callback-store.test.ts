@@ -42,4 +42,22 @@ describe('callback store', () => {
     expect(s.latest()?.messageId).toBe('m1');
     expect(s.list()).toHaveLength(2);
   });
+
+  it('waitFor resolves as soon as the callback arrives', async () => {
+    const s = createCallbackStore();
+    setTimeout(() => s.add('m1', 'hello'), 30);
+    const got = await s.waitFor('m1', 1000, 10);
+    expect(got?.body).toBe('hello');
+  });
+
+  it('waitFor gives up with undefined after the time limit', async () => {
+    const s = createCallbackStore();
+    expect(await s.waitFor('never', 60, 10)).toBeUndefined();
+  });
+
+  it('waitFor returns at once when it is already there', async () => {
+    const s = createCallbackStore();
+    s.add('m1', 1);
+    expect((await s.waitFor('m1', 1000))?.body).toBe(1);
+  });
 });

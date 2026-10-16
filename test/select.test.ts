@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { FastifyInstance } from 'fastify';
-import { buildServer } from '../src/server.js';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createApp } from '../src/app.js';
 import { EXPORTER, NOTHING, WARUNG, envelope, makeDeps, selectMessage } from './helpers.js';
 
-let app: FastifyInstance | undefined;
+let app: NestFastifyApplication | undefined;
 afterEach(async () => {
   await app?.close();
   app = undefined;
@@ -11,10 +11,11 @@ afterEach(async () => {
 
 async function setup() {
   const made = await makeDeps();
-  app = buildServer(made.deps);
+  app = await createApp(made.deps);
+  const fastify = app.getHttpAdapter().getInstance();
   const select = (message: unknown, overrides: Record<string, unknown> = {}) => {
     const body = envelope('select');
-    return app!.inject({
+    return fastify.inject({
       method: 'POST',
       url: '/api/webhook/select',
       payload: { context: { ...body.context, ...overrides }, message } as object,

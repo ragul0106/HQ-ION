@@ -1,8 +1,9 @@
+import 'reflect-metadata';
+import { createApp } from './app.js';
 import { ConfigError, loadConfig } from './config.js';
 import { FileSchemeStore, formatProblems } from './eligibility/loader.js';
 import { createLogger } from './logger.js';
 import { createCallbackSender, createScheduler } from './protocol/callback.js';
-import { buildServer } from './server.js';
 
 async function main(): Promise<void> {
   let config;
@@ -42,7 +43,7 @@ async function main(): Promise<void> {
     });
   });
 
-  const app = buildServer({
+  const app = await createApp({
     config,
     logger,
     schemes,
@@ -60,7 +61,7 @@ async function main(): Promise<void> {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
 
-  await app.listen({ host: config.HOST, port: config.PORT });
+  await app.listen(config.PORT, config.HOST);
   logger.info(
     { bppId: config.BPP_ID, networkId: config.NETWORK_ID, schemeCount: loaded.schemes.length },
     'seller app ready',

@@ -6,6 +6,7 @@ only the schemes that MSME qualifies for.
 
 - Plan, milestones, decisions and open questions: [docs/PLAN.md](docs/PLAN.md)
 - Run it against the local ION testnet: [docs/LOCAL_TESTNET.md](docs/LOCAL_TESTNET.md)
+- How it works (the journey, the two scheme lists, the eligibility engine): [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)
 - Test the APIs with curl or Postman: [docs/API_TESTING.md](docs/API_TESTING.md) (Postman collection in `docs/postman/`)
 - Scheme file format: [data/schemes/README.md](data/schemes/README.md)
 - Status: **M0 (foundations) and M1 (local seller) done.** The seller answers `select` with the eligible schemes and
@@ -44,16 +45,17 @@ npm run check                # typecheck + lint + format check + tests
 
 Other scripts:
 
-| Command                                                               | What it does                                                                                                                                                                                      |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test`, `npm run test:watch`                                      | tests                                                                                                                                                                                             |
-| `npm run build`, `npm start`                                          | compile and run the seller app                                                                                                                                                                    |
-| `npm run schemes:validate`                                            | check the files in `data/schemes`                                                                                                                                                                 |
-| `npm run catalog:publish [-- --dry-run]`                              | build the catalog from the scheme files and publish it via the adapter                                                                                                                            |
-| `npm run onix:apply -- <testnet dir> [--check]`                       | apply our local config to a clone of ION's `ion-onix`                                                                                                                                             |
-| `npm run listen [-- --json]`                                          | catches the answers (`on_select`) and keeps them: print them, or fetch with `GET :3101/callbacks/<messageId>` (this is how Postman shows the schemes; [docs/API_TESTING.md](docs/API_TESTING.md)) |
-| `npm run ask -- --sector food --province "Jawa Tengah" --nib yes ...` | ask the seller, as a buyer, which schemes your answers qualify for (`--help` lists every answer)                                                                                                  |
-| `npm run roundtrip -- [warung\|exporter\|nothing\|partial\|all]`      | live round trip through the ION testnet                                                                                                                                                           |
+| Command                                                               | What it does                                                                                                                                                                                                                            |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`, `npm run test:watch`                                      | tests                                                                                                                                                                                                                                   |
+| `npm run build`, `npm start`                                          | compile and run the seller app                                                                                                                                                                                                          |
+| `npm run schemes:validate`                                            | check the files in `data/schemes`                                                                                                                                                                                                       |
+| `npm run catalog:publish [-- --dry-run]`                              | build the catalog from the scheme files and publish it via the adapter                                                                                                                                                                  |
+| `npm run onix:apply -- <testnet dir> [--check]`                       | apply our local config to a clone of ION's `ion-onix`                                                                                                                                                                                   |
+| `npm run listen [-- --json]`                                          | buyer-side server on :3101. `POST /check` returns the matching schemes in one call, `GET /catalog` returns every scheme we publish, and it catches `on_select` answers for curl or Postman ([docs/API_TESTING.md](docs/API_TESTING.md)) |
+| `npm run doctor`                                                      | check the seller app, adapters, schema proxy and listener are up, and say what to start if not                                                                                                                                          |
+| `npm run ask -- --sector food --province "Jawa Tengah" --nib yes ...` | ask the seller, as a buyer, which schemes your answers qualify for (`--help` lists every answer)                                                                                                                                        |
+| `npm run roundtrip -- [warung\|exporter\|nothing\|partial\|all]`      | live round trip through the ION testnet                                                                                                                                                                                                 |
 
 ## Configuration
 
@@ -74,10 +76,12 @@ required ones are missing, and never prints a rejected value.
 
 ```
 src/
-  main.ts            entry point (loads schemes, starts the server, SIGHUP reloads schemes)
+  main.ts            entry point (loads schemes, starts the NestJS server, SIGHUP reloads schemes)
   config.ts          env validation
   logger.ts          pino logger with personal-data scrubbing
-  server.ts          webhook route, ACK/NACK, per-message logging
+  app.ts             builds the NestJS app (on the Fastify adapter); app.module.ts wires it; app.tokens.ts names what is injected
+  http/              webhook.controller.ts (POST /api/webhook/:action), webhook.service.ts (checks, picks the handler,
+                     one log line per message), health.controller.ts (GET /health), pino-nest-logger.ts
   handlers/          one handler per action (select is real; the rest answer "unsupported")
   protocol/          Beckn context, ACK/NACK, action lists, protocol logger, callback sender with retries
   eligibility/       scheme and profile types, loader (validates files), rules engine

@@ -30,14 +30,14 @@ catalog:  THIS APP ── POST /catalog/publish ──► ONIX adapter ──►
 
 ## 3. Decisions
 
-| Area          | Decision                                                                        | Why                                                            |
-| ------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Language      | **TypeScript on Node 22 LTS**, Fastify, zod, pino, vitest                       | Typed message shapes; same language as the front end           |
-| Adapter       | ION's **ONIX adapter** in Docker, unchanged, version pinned                     | Do not reimplement signing and validation                      |
-| Scheme store  | Versioned **JSON files**, validated on load, reloadable without a deploy        | PRD: a reviewed CSV/JSON import is enough for 15 schemes       |
-| Personal data | None stored, none logged; scrubbed by key name as a safety net                  | PRD W5                                                         |
-| Config        | Environment variables only; `ION_ENV` and `DATA_REGION` required, no default    | PRD W1/W5; a live run must be deliberate                       |
-| Logging       | One JSON line per protocol message (`logProtocol`), ids and outcome, no payload | PRD W1: "on demo day this is the only thing that will save us" |
+| Area          | Decision                                                                              | Why                                                            |
+| ------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Language      | **TypeScript on Node 22 LTS**, **NestJS** (on the Fastify adapter), zod, pino, vitest | Typed message shapes; same language as the front end           |
+| Adapter       | ION's **ONIX adapter** in Docker, unchanged, version pinned                           | Do not reimplement signing and validation                      |
+| Scheme store  | Versioned **JSON files**, validated on load, reloadable without a deploy              | PRD: a reviewed CSV/JSON import is enough for 15 schemes       |
+| Personal data | None stored, none logged; scrubbed by key name as a safety net                        | PRD W5                                                         |
+| Config        | Environment variables only; `ION_ENV` and `DATA_REGION` required, no default          | PRD W1/W5; a live run must be deliberate                       |
+| Logging       | One JSON line per protocol message (`logProtocol`), ids and outcome, no payload       | PRD W1: "on demo day this is the only thing that will save us" |
 
 ## 4. Milestones
 

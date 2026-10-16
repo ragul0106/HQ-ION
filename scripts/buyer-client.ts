@@ -184,7 +184,9 @@ export function buildSelect(
 
 export interface AdapterReply {
   status: number;
-  json: { message?: { status?: string; error?: { code?: string; message?: string } } };
+  json: {
+    message?: { status?: string; messageId?: string; error?: { code?: string; message?: string } };
+  };
 }
 
 /** POST a `select` to the buyer adapter. The reply is only the ACK or NACK; the answer comes later. */
