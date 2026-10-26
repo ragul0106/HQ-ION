@@ -1,71 +1,104 @@
 {
   "id": "FAKE-SCH-004",
-  "name": {
-    "en": "Fake Export Readiness Support",
-    "id": "Dukungan Kesiapan Ekspor (CONTOH)"
-  },
-  "benefit": {
-    "en": "Subsidised export certification",
-    "id": "Subsidi sertifikasi ekspor"
-  },
-  "eligibility": {
-    "rules": [
-      {
-        "ruleId": "R1",
-        "field": "annualTurnoverIdr",
-        "operator": ">=",
-        "value": 500000000,
-        "unit": "IDR",
-        "label": {
-          "en": "Annual turnover at least IDR 500 million",
-          "id": "Omzet tahunan minimal Rp500 juta"
-        }
-      },
-      {
-        "ruleId": "R2",
-        "field": "hasNIB",
-        "operator": "=",
-        "value": true,
-        "label": {
-          "en": "Has a business registration number (NIB)",
-          "id": "Memiliki Nomor Induk Berusaha (NIB)"
-        }
-      },
-      {
-        "ruleId": "R3",
-        "field": "exportsOrPlansToExport",
-        "operator": "=",
-        "value": true,
-        "label": {
-          "en": "Exports or plans to export",
-          "id": "Mengekspor atau berencana mengekspor"
-        }
-      }
-    ]
-  },
-  "documents": [
-    {
-      "name": {
-        "en": "NIB",
-        "id": "NIB"
-      },
-      "mandatory": true
+  "placeholder": true,
+  "resourceAttributes": {
+    "@context": "https://schema.ion.id/services/resource/v1/context.jsonld",
+    "@type": "ion:IONSocialSchemeResource",
+    "crc": "SVC-social",
+    "schemeIdentity": {
+      "schemeName": "Dukungan Kesiapan Ekspor (CONTOH)",
+      "implementingAgency": "Kementerian Perdagangan (CONTOH)",
+      "implementingAgencyLevel": "NATIONAL_MINISTRY",
+      "schemeLevel": "CENTRAL",
+      "schemeType": "SUBSIDY",
+      "fundingModel": "APBN_CENTRAL_BUDGET",
+      "sectorTags": [
+        "MSME"
+      ]
     },
-    {
-      "name": {
-        "en": "Product list",
-        "id": "Daftar produk"
+    "eligibility": {
+      "targetBeneficiaryTypes": [
+        "MICRO_ENTERPRISE"
+      ],
+      "demographicCriteria": [],
+      "economicCriteria": [
+        {
+          "ruleId": "R1",
+          "label": "Omzet tahunan minimal Rp500 juta",
+          "operator": ">=",
+          "value": 500000000,
+          "unit": "IDR"
+        }
+      ],
+      "occupationalCriteria": [
+        {
+          "ruleId": "R2",
+          "label": "Memiliki Nomor Induk Berusaha (NIB)",
+          "operator": "=",
+          "value": "true"
+        },
+        {
+          "ruleId": "R3",
+          "label": "Mengekspor atau berencana mengekspor",
+          "operator": "=",
+          "value": "true"
+        }
+      ],
+      "eligibilitySummary": "Omzet tahunan minimal Rp500 juta; Memiliki Nomor Induk Berusaha (NIB); Mengekspor atau berencana mengekspor."
+    },
+    "benefit": {
+      "benefitForm": "FEE_WAIVER",
+      "benefitDescription": "Subsidi sertifikasi ekspor"
+    },
+    "requiredDocuments": [
+      {
+        "documentType": "OTHER",
+        "purpose": "NIB",
+        "mandatory": true
       },
-      "mandatory": true
-    }
-  ],
-  "fulfillment": {
-    "type": "EXTERNAL_REDIRECT",
-    "url": "https://example.invalid/fake-export",
-    "instructions": {
-      "en": "Apply on the official portal.",
-      "id": "Ajukan melalui portal resmi."
+      {
+        "documentType": "OTHER",
+        "purpose": "Daftar produk",
+        "mandatory": true
+      }
+    ],
+    "applicationChannel": {
+      "applicationMode": "SELF_SERVICE",
+      "governmentPortalUrl": "https://example.invalid/fake-export",
+      "applicationWindow": "ROLLING"
+    },
+    "indonesianCompliance": {
+      "dataResidency": "DOMESTIC_ONLY"
     }
   },
-  "placeholder": true
+  "haqdarshak": {
+    "ruleFields": {
+      "R1": "annualTurnoverIdr",
+      "R2": "hasNIB",
+      "R3": "exportsOrPlansToExport"
+    },
+    "translations": {
+      "en": {
+        "schemeName": "Fake Export Readiness Support",
+        "benefitDescription": "Subsidised export certification",
+        "eligibilitySummary": "Annual turnover at least IDR 500 million; Has a business registration number (NIB); Exports or plans to export.",
+        "ruleLabels": {
+          "R1": "Annual turnover at least IDR 500 million",
+          "R2": "Has a business registration number (NIB)",
+          "R3": "Exports or plans to export"
+        },
+        "documentPurposes": [
+          "NIB",
+          "Product list"
+        ]
+      }
+    },
+    "fulfillment": {
+      "type": "EXTERNAL_REDIRECT",
+      "instructions": {
+        "en": "Apply on the official portal.",
+        "id": "Ajukan melalui portal resmi."
+      }
+    }
+  }
 }

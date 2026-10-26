@@ -1,61 +1,101 @@
 {
   "id": "FAKE-SCH-001",
-  "name": {
-    "en": "Fake Micro Loan Scheme",
-    "id": "Skema Pinjaman Mikro (CONTOH)"
-  },
-  "benefit": {
-    "en": "Low-interest loan up to IDR 50 million",
-    "id": "Pinjaman bunga rendah hingga Rp50 juta"
-  },
-  "eligibility": {
-    "rules": [
-      {
-        "ruleId": "R1",
-        "field": "annualTurnoverIdr",
-        "operator": "<=",
-        "value": 2000000000,
-        "unit": "IDR",
-        "label": {
-          "en": "Annual turnover up to IDR 2 billion",
-          "id": "Omzet tahunan hingga Rp2 miliar"
-        }
-      },
-      {
-        "ruleId": "R2",
-        "field": "hasNIB",
-        "operator": "=",
-        "value": true,
-        "label": {
-          "en": "Has a business registration number (NIB)",
-          "id": "Memiliki Nomor Induk Berusaha (NIB)"
-        }
-      }
-    ]
-  },
-  "documents": [
-    {
-      "name": {
-        "en": "NIB",
-        "id": "NIB"
-      },
-      "mandatory": true
+  "placeholder": true,
+  "resourceAttributes": {
+    "@context": "https://schema.ion.id/services/resource/v1/context.jsonld",
+    "@type": "ion:IONSocialSchemeResource",
+    "crc": "SVC-social",
+    "schemeIdentity": {
+      "schemeName": "Skema Pinjaman Mikro (CONTOH)",
+      "implementingAgency": "Kementerian Koperasi dan UKM (CONTOH)",
+      "implementingAgencyLevel": "NATIONAL_MINISTRY",
+      "schemeLevel": "CENTRAL",
+      "schemeType": "LOAN_INTEREST_SUBSIDY",
+      "fundingModel": "APBN_CENTRAL_BUDGET",
+      "sectorTags": [
+        "MSME"
+      ]
     },
-    {
-      "name": {
-        "en": "Business bank statement",
-        "id": "Rekening koran usaha"
+    "eligibility": {
+      "targetBeneficiaryTypes": [
+        "MICRO_ENTERPRISE"
+      ],
+      "demographicCriteria": [],
+      "economicCriteria": [
+        {
+          "ruleId": "R1",
+          "label": "Omzet tahunan hingga Rp2 miliar",
+          "operator": "<=",
+          "value": 2000000000,
+          "unit": "IDR"
+        }
+      ],
+      "occupationalCriteria": [
+        {
+          "ruleId": "R2",
+          "label": "Memiliki Nomor Induk Berusaha (NIB)",
+          "operator": "=",
+          "value": "true"
+        }
+      ],
+      "eligibilitySummary": "Omzet tahunan hingga Rp2 miliar; Memiliki Nomor Induk Berusaha (NIB)."
+    },
+    "benefit": {
+      "benefitForm": "INTEREST_SUBSIDY",
+      "benefitDescription": "Pinjaman bunga rendah hingga Rp50 juta",
+      "benefitAmount": {
+        "value": 50000000,
+        "currency": "IDR"
       },
-      "mandatory": true
-    }
-  ],
-  "fulfillment": {
-    "type": "EXTERNAL_REDIRECT",
-    "url": "https://example.invalid/fake-micro-loan",
-    "instructions": {
-      "en": "Apply on the official portal.",
-      "id": "Ajukan melalui portal resmi."
+      "benefitAmountBasis": "FIXED"
+    },
+    "requiredDocuments": [
+      {
+        "documentType": "OTHER",
+        "purpose": "NIB",
+        "mandatory": true
+      },
+      {
+        "documentType": "BUKU_TABUNGAN",
+        "purpose": "Rekening koran usaha",
+        "mandatory": true
+      }
+    ],
+    "applicationChannel": {
+      "applicationMode": "SELF_SERVICE",
+      "governmentPortalUrl": "https://example.invalid/fake-micro-loan",
+      "applicationWindow": "ROLLING"
+    },
+    "indonesianCompliance": {
+      "dataResidency": "DOMESTIC_ONLY"
     }
   },
-  "placeholder": true
+  "haqdarshak": {
+    "ruleFields": {
+      "R1": "annualTurnoverIdr",
+      "R2": "hasNIB"
+    },
+    "translations": {
+      "en": {
+        "schemeName": "Fake Micro Loan Scheme",
+        "benefitDescription": "Low-interest loan up to IDR 50 million",
+        "eligibilitySummary": "Annual turnover up to IDR 2 billion; Has a business registration number (NIB).",
+        "ruleLabels": {
+          "R1": "Annual turnover up to IDR 2 billion",
+          "R2": "Has a business registration number (NIB)"
+        },
+        "documentPurposes": [
+          "NIB",
+          "Business bank statement"
+        ]
+      }
+    },
+    "fulfillment": {
+      "type": "EXTERNAL_REDIRECT",
+      "instructions": {
+        "en": "Apply on the official portal.",
+        "id": "Ajukan melalui portal resmi."
+      }
+    }
+  }
 }

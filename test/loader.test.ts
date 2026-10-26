@@ -46,14 +46,16 @@ describe('loadSchemes', () => {
     const bad = await validScheme('BAD-1');
     await writeFile(
       join(dir, 'bad-rule.json'),
-      JSON.stringify({ ...bad, eligibility: { rules: [] } }),
+      JSON.stringify({ ...bad, resourceAttributes: { crc: 'SVC-wrong' } }),
     );
     const r = await loadSchemes(dir);
     expect(r.ok).toBe(false);
     if (!r.ok) {
       expect(r.problems.some((p) => p.file === 'broken.json')).toBe(true);
       expect(
-        r.problems.some((p) => p.file === 'bad-rule.json' && p.path.startsWith('eligibility')),
+        r.problems.some(
+          (p) => p.file === 'bad-rule.json' && p.path.startsWith('resourceAttributes'),
+        ),
       ).toBe(true);
     }
   });

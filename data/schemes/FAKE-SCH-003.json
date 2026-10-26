@@ -1,67 +1,102 @@
 {
   "id": "FAKE-SCH-003",
-  "name": {
-    "en": "Fake Rural Digitalisation Grant",
-    "id": "Hibah Digitalisasi Desa (CONTOH)"
-  },
-  "benefit": {
-    "en": "Grant for online store setup",
-    "id": "Hibah untuk pembuatan toko daring"
-  },
-  "eligibility": {
-    "rules": [
-      {
-        "ruleId": "R1",
-        "field": "province",
-        "operator": "IN",
-        "value": [
+  "placeholder": true,
+  "resourceAttributes": {
+    "@context": "https://schema.ion.id/services/resource/v1/context.jsonld",
+    "@type": "ion:IONSocialSchemeResource",
+    "crc": "SVC-social",
+    "schemeIdentity": {
+      "schemeName": "Hibah Digitalisasi Desa (CONTOH)",
+      "implementingAgency": "Dinas Koperasi dan UKM Provinsi (CONTOH)",
+      "implementingAgencyLevel": "PROVINCIAL_AGENCY",
+      "schemeLevel": "PROVINCIAL",
+      "schemeType": "SUBSIDY",
+      "fundingModel": "APBN_CENTRAL_BUDGET",
+      "sectorTags": [
+        "MSME"
+      ]
+    },
+    "eligibility": {
+      "targetBeneficiaryTypes": [
+        "MICRO_ENTERPRISE"
+      ],
+      "demographicCriteria": [],
+      "economicCriteria": [],
+      "occupationalCriteria": [
+        {
+          "ruleId": "R2",
+          "label": "Usaha perorangan atau CV",
+          "operator": "IN",
+          "value": [
+            "individual",
+            "CV"
+          ]
+        }
+      ],
+      "geographicEligibility": {
+        "residencyRequired": true,
+        "applicableProvinces": [
           "Jawa Tengah",
           "Jawa Timur",
           "Nusa Tenggara Timur"
         ],
-        "label": {
-          "en": "Located in a pilot province",
-          "id": "Berlokasi di provinsi percontohan"
-        }
+        "domicileMatchBasis": "SURAT_DOMISILI"
+      },
+      "eligibilitySummary": "Berlokasi di provinsi percontohan; Usaha perorangan atau CV."
+    },
+    "benefit": {
+      "benefitForm": "CASH",
+      "benefitDescription": "Hibah untuk pembuatan toko daring"
+    },
+    "requiredDocuments": [
+      {
+        "documentType": "KTP",
+        "purpose": "KTP",
+        "mandatory": true
       },
       {
-        "ruleId": "R2",
-        "field": "businessType",
-        "operator": "IN",
-        "value": [
-          "individual",
-          "CV"
-        ],
-        "label": {
-          "en": "Individual business or CV",
-          "id": "Usaha perorangan atau CV"
-        }
+        "documentType": "FOTO_RUMAH",
+        "purpose": "Foto usaha",
+        "mandatory": false
       }
-    ]
-  },
-  "documents": [
-    {
-      "name": {
-        "en": "ID card (KTP)",
-        "id": "KTP"
-      },
-      "mandatory": true
+    ],
+    "applicationChannel": {
+      "applicationMode": "SELF_SERVICE",
+      "governmentPortalUrl": "https://example.invalid/fake-rural-grant",
+      "applicationWindow": "ROLLING"
     },
-    {
-      "name": {
-        "en": "Photo of the business",
-        "id": "Foto usaha"
-      },
-      "mandatory": false
-    }
-  ],
-  "fulfillment": {
-    "type": "EXTERNAL_REDIRECT",
-    "url": "https://example.invalid/fake-rural-grant",
-    "instructions": {
-      "en": "Apply through your village office.",
-      "id": "Ajukan lewat kantor desa."
+    "indonesianCompliance": {
+      "dataResidency": "DOMESTIC_ONLY"
     }
   },
-  "placeholder": true
+  "haqdarshak": {
+    "ruleFields": {
+      "R2": "businessType"
+    },
+    "translations": {
+      "en": {
+        "schemeName": "Fake Rural Digitalisation Grant",
+        "benefitDescription": "Grant for online store setup",
+        "eligibilitySummary": "Located in a pilot province; Individual business or CV.",
+        "ruleLabels": {
+          "R2": "Individual business or CV"
+        },
+        "documentPurposes": [
+          "ID card (KTP)",
+          "Photo of the business"
+        ]
+      }
+    },
+    "fulfillment": {
+      "type": "EXTERNAL_REDIRECT",
+      "instructions": {
+        "en": "Apply through your village office.",
+        "id": "Ajukan lewat kantor desa."
+      }
+    },
+    "geographicLabel": {
+      "en": "Located in a pilot province",
+      "id": "Berlokasi di provinsi percontohan"
+    }
+  }
 }

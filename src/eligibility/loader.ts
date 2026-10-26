@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { SchemeSchema, type Scheme } from './types.js';
+import { SchemeFileSchema } from './scheme-file.js';
+import type { Scheme } from './types.js';
 
 export interface LoadProblem {
   file: string;
@@ -42,7 +43,7 @@ export async function loadSchemes(dir: string): Promise<LoadResult> {
       problems.push({ file: name, path: '', message: 'not valid JSON' });
       continue;
     }
-    const parsed = SchemeSchema.safeParse(raw);
+    const parsed = SchemeFileSchema.safeParse(raw);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         problems.push({ file: name, path: issue.path.join('.'), message: issue.message });

@@ -111,6 +111,8 @@ export const SchemeSchema = z
       .object({ from: z.string().min(1), to: z.string().min(1) })
       .strict()
       .optional(),
+    /** The pack's `resourceAttributes` block this scheme was loaded from (absent for schemes built in code). */
+    resourceAttributes: z.record(z.string(), z.unknown()).optional(),
     /** Marks sample data. The publisher refuses to publish placeholders to the live network. */
     placeholder: z.boolean().default(false),
   })

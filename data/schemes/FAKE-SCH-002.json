@@ -1,66 +1,100 @@
 {
   "id": "FAKE-SCH-002",
-  "name": {
-    "en": "Fake Food Business Training",
-    "id": "Pelatihan Usaha Makanan (CONTOH)"
-  },
-  "benefit": {
-    "en": "Free food-safety and packaging training",
-    "id": "Pelatihan keamanan pangan dan kemasan gratis"
-  },
-  "eligibility": {
-    "rules": [
-      {
-        "ruleId": "R1",
-        "field": "sector",
-        "operator": "IN",
-        "value": [
-          "food",
-          "beverage"
-        ],
-        "label": {
-          "en": "Business is in food or beverage",
-          "id": "Usaha di bidang makanan atau minuman"
+  "placeholder": true,
+  "resourceAttributes": {
+    "@context": "https://schema.ion.id/services/resource/v1/context.jsonld",
+    "@type": "ion:IONSocialSchemeResource",
+    "crc": "SVC-social",
+    "schemeIdentity": {
+      "schemeName": "Pelatihan Usaha Makanan (CONTOH)",
+      "implementingAgency": "Kementerian Koperasi dan UKM (CONTOH)",
+      "implementingAgencyLevel": "NATIONAL_MINISTRY",
+      "schemeLevel": "CENTRAL",
+      "schemeType": "SKILL_TRAINING",
+      "fundingModel": "APBN_CENTRAL_BUDGET",
+      "sectorTags": [
+        "MSME",
+        "EMPLOYMENT"
+      ]
+    },
+    "eligibility": {
+      "targetBeneficiaryTypes": [
+        "MICRO_ENTERPRISE"
+      ],
+      "demographicCriteria": [],
+      "economicCriteria": [],
+      "occupationalCriteria": [
+        {
+          "ruleId": "R1",
+          "label": "Usaha di bidang makanan atau minuman",
+          "operator": "IN",
+          "value": [
+            "food",
+            "beverage"
+          ]
+        },
+        {
+          "ruleId": "R2",
+          "label": "Minimal 1 pekerja",
+          "operator": ">=",
+          "value": 1
+        },
+        {
+          "ruleId": "R3",
+          "label": "Maksimal 19 pekerja",
+          "operator": "<=",
+          "value": 19
         }
-      },
+      ],
+      "eligibilitySummary": "Usaha di bidang makanan atau minuman; Minimal 1 pekerja; Maksimal 19 pekerja."
+    },
+    "benefit": {
+      "benefitForm": "SERVICE_DELIVERY",
+      "benefitDescription": "Pelatihan keamanan pangan dan kemasan gratis"
+    },
+    "requiredDocuments": [
       {
-        "ruleId": "R2",
-        "field": "workerCount",
-        "operator": ">=",
-        "value": 1,
-        "label": {
-          "en": "At least 1 worker",
-          "id": "Minimal 1 pekerja"
-        }
-      },
-      {
-        "ruleId": "R3",
-        "field": "workerCount",
-        "operator": "<=",
-        "value": 19,
-        "label": {
-          "en": "At most 19 workers",
-          "id": "Maksimal 19 pekerja"
-        }
+        "documentType": "KTP",
+        "purpose": "KTP",
+        "mandatory": true
       }
-    ]
-  },
-  "documents": [
-    {
-      "name": {
-        "en": "ID card (KTP)",
-        "id": "KTP"
-      },
-      "mandatory": true
-    }
-  ],
-  "fulfillment": {
-    "type": "EXTERNAL_REDIRECT",
-    "url": "https://example.invalid/fake-food-training",
-    "instructions": {
-      "en": "Register on the training site.",
-      "id": "Daftar di situs pelatihan."
+    ],
+    "applicationChannel": {
+      "applicationMode": "SELF_SERVICE",
+      "governmentPortalUrl": "https://example.invalid/fake-food-training",
+      "applicationWindow": "ROLLING"
+    },
+    "indonesianCompliance": {
+      "dataResidency": "DOMESTIC_ONLY"
     }
   },
-  "placeholder": true
+  "haqdarshak": {
+    "ruleFields": {
+      "R1": "sector",
+      "R2": "workerCount",
+      "R3": "workerCount"
+    },
+    "translations": {
+      "en": {
+        "schemeName": "Fake Food Business Training",
+        "benefitDescription": "Free food-safety and packaging training",
+        "eligibilitySummary": "Business is in food or beverage; At least 1 worker; At most 19 workers.",
+        "ruleLabels": {
+          "R1": "Business is in food or beverage",
+          "R2": "At least 1 worker",
+          "R3": "At most 19 workers"
+        },
+        "documentPurposes": [
+          "ID card (KTP)"
+        ]
+      }
+    },
+    "fulfillment": {
+      "type": "EXTERNAL_REDIRECT",
+      "instructions": {
+        "en": "Register on the training site.",
+        "id": "Daftar di situs pelatihan."
+      }
+    }
+  }
 }
